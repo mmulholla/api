@@ -44,24 +44,23 @@ BASE_DIR=$(cd "$(dirname "$0")" && pwd)
 
 rm -f validate-output.txt &> /dev/null
 
-for schema in "devfile" "dev-workspace" "dev-workspace-template"
+for schemaPath in $( jq -r '."yaml.schemas" | keys[]' ./.theia/settings.json)
 do
-  schemaPath="./schemas/latest/with-markdown-descriptions/${schema}.json"
   devfiles=$(jq -r '."yaml.schemas"."'${schemaPath}'"[]' .theia/settings.json)
-  echo "Validating $schema files against ${schemaPath}"
   for devfile in $devfiles
   do
     if ! jsonschema-cli validate "${BASE_DIR}/${schemaPath}" "${BASE_DIR}/${devfile}" >> validate-output.txt
     then
-      echo "  - $devfile => INVALID"
+      echo "    FAIL ==>  $schemaPath : $devfile"
     else 
-      echo "  - $devfile => OK"
+      echo "PASS ==>  $schemaPath : $devfile"
     fi
   done
 done
 if [ "$(cat validate-output.txt)" != "" ]
 then
   echo
+  echo "Failures were found."
   echo "Some files are invalid according to the related json schema."  
   echo "Detailed information can be found in the 'validate-output.txt' file."
   exit 1
