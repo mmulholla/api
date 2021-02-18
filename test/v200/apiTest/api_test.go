@@ -66,6 +66,26 @@ func Test_MultiComponent(t *testing.T) {
 	api.RunTest(testContent, t)
 }
 
+func Test_Projects(t *testing.T) {
+	testContent := common.TestContent{}
+	testContent.ProjectTypes = []schema.ProjectSourceType{
+		schema.GitProjectSourceType,
+		schema.GitHubProjectSourceType,
+		schema.ZipProjectSourceType}
+	testContent.FileName = common.GetDevFileName()
+	api.RunTest(testContent, t)
+}
+
+func Test_StarterProjects(t *testing.T) {
+	testContent := common.TestContent{}
+	testContent.ProjectTypes = []schema.ProjectSourceType{
+		schema.GitProjectSourceType,
+		schema.GitHubProjectSourceType,
+		schema.ZipProjectSourceType}
+	testContent.FileName = common.GetDevFileName()
+	api.RunTest(testContent, t)
+}
+
 func Test_Everything(t *testing.T) {
 	testContent := common.TestContent{}
 	testContent.CommandTypes = []schema.CommandType{
@@ -75,6 +95,14 @@ func Test_Everything(t *testing.T) {
 	testContent.ComponentTypes = []schema.ComponentType{
 		schema.ContainerComponentType,
 		schema.VolumeComponentType}
+	testContent.ProjectTypes = []schema.ProjectSourceType{
+		schema.GitProjectSourceType,
+		schema.GitHubProjectSourceType,
+		schema.ZipProjectSourceType}
+	testContent.ProjectTypes = []schema.ProjectSourceType{
+		schema.GitProjectSourceType,
+		schema.GitHubProjectSourceType,
+		schema.ZipProjectSourceType}
 	testContent.FileName = common.GetDevFileName()
 	api.RunTest(testContent, t)
 }

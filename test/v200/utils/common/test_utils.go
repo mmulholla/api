@@ -21,6 +21,10 @@ const (
 	maxCommands = 10
 	// maxComponents : The maximum number of components to include in a generated devfile
 	maxComponents = 10
+	// maxProjects : The maximum number of projects to include in a generated devfile
+	maxProjects = 10
+	// maxStarterProjects : the number of starterProjects to create for each test
+	maxStarterProjects = 10
 	// numDevfiles : the number of devfiles to create for each test
 	numDevfiles = 5
 )
@@ -66,8 +70,10 @@ type DevfileValidator interface {
 
 // TestContent - structure used by a test to configure the tests to run
 type TestContent struct {
-	CommandTypes   []schema.CommandType
-	ComponentTypes []schema.ComponentType
+	CommandTypes   		[]schema.CommandType
+	ComponentTypes 		[]schema.ComponentType
+	ProjectTypes   		[]schema.ProjectSourceType
+	StarterProjectTypes []schema.ProjectSourceType
 	FileName       string
 	EditContent    bool
 }
@@ -190,7 +196,11 @@ var StringCount int = 0
 // If lower is set to true a lower case string is returned.
 func GetRandomUniqueString(n int, lower bool) string {
 	StringCount++
-	return fmt.Sprintf("%s%04d", GetRandomString(n, lower), StringCount)
+	countAsString := fmt.Sprintf("%05d",StringCount)
+	if n < len(countAsString) {
+		n += len(countAsString)
+	}
+	return fmt.Sprintf("%s%s", GetRandomString(n-len(countAsString), lower), countAsString)
 }
 
 const schemaBytes = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
@@ -257,13 +267,13 @@ func GetDevfile(fileName string, follower DevfileFollower, validator DevfileVali
 }
 
 // Runs a test to create and verify a devfile based on the content of the specified TestContent
-func (testDevfile *TestDevfile) RunTest(testContent TestContent, t *testing.T) {
+func (devfile *TestDevfile) RunTest(testContent TestContent, t *testing.T) {
 
 	if len(testContent.CommandTypes) > 0 {
 		numCommands := GetRandomNumber(1, maxCommands)
 		for i := 0; i < numCommands; i++ {
 			commandIndex := GetRandomNumber(1, len(testContent.CommandTypes))
-			testDevfile.AddCommand(testContent.CommandTypes[commandIndex-1])
+			devfile.AddCommand(testContent.CommandTypes[commandIndex-1])
 		}
 	}
 
@@ -271,11 +281,27 @@ func (testDevfile *TestDevfile) RunTest(testContent TestContent, t *testing.T) {
 		numComponents := GetRandomNumber(1, maxComponents)
 		for i := 0; i < numComponents; i++ {
 			componentIndex := GetRandomNumber(1, len(testContent.ComponentTypes))
-			testDevfile.AddComponent(testContent.ComponentTypes[componentIndex-1])
+			devfile.AddComponent(testContent.ComponentTypes[componentIndex-1])
 		}
 	}
 
-	err := testDevfile.Validator.WriteAndValidate(testDevfile)
+	if len(testContent.ProjectTypes) > 0 {
+		numProjects := GetRandomNumber(1, maxProjects)
+		for i := 0; i < numProjects; i++ {
+			projectIndex := GetRandomNumber(1, len(testContent.ProjectTypes))
+			devfile.AddProject(testContent.ProjectTypes[projectIndex-1])
+		}
+	}
+
+	if len(testContent.StarterProjectTypes) > 0 {
+		numStarterProjects := GetRandomNumber(1, maxStarterProjects)
+		for i := 0; i < numStarterProjects; i++ {
+			starterProjectIndex := GetRandomNumber(1, len(testContent.StarterProjectTypes))
+			devfile.AddStarterProject(testContent.ProjectTypes[starterProjectIndex-1])
+		}
+	}
+
+	err := devfile.Validator.WriteAndValidate(devfile)
 	if err != nil {
 		t.Fatalf(LogErrorMessage(fmt.Sprintf("ERROR verifying devfile :  %s : %v", testContent.FileName, err)))
 	}
