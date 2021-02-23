@@ -1,7 +1,7 @@
 {
   "description": "DevWorkspace is the Schema for the devworkspaces API\n\nIDE-targeted variants of the schemas provide the following difference compared to the main schemas:\n- They contain additional non-standard `markdownDescription` attributes that are used by IDEs such a VSCode\nto provide markdown-rendered documentation hovers. \n- They don't contain `default` attributes, since this triggers unwanted addition of defaulted fields during completion in IDEs.",
   "type": "object",
-  "title": "DevWorkspace schema - Version 2.0.0-alpha2 - IDE-targeted variant",
+  "title": "DevWorkspace schema - Version 2.1.0-alpha - IDE-targeted variant",
   "properties": {
     "apiVersion": {
       "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
@@ -258,15 +258,10 @@
                   "apply": {
                     "description": "Command that consists in applying a given component definition, typically bound to a workspace event.\n\nFor example, when an `apply` command is bound to a `preStart` event, and references a `container` component, it will start the container as a K8S initContainer in the workspace POD, unless the component has its `dedicatedPod` field set to `true`.\n\nWhen no `apply` command exist for a given component, it is assumed the component will be applied at workspace start by default.",
                     "type": "object",
+                    "required": [
+                      "component"
+                    ],
                     "properties": {
-                      "attributes": {
-                        "description": "Optional map of free-form additional command attributes",
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "string"
-                        },
-                        "markdownDescription": "Optional map of free-form additional command attributes"
-                      },
                       "component": {
                         "description": "Describes component that will be applied",
                         "type": "string",
@@ -308,18 +303,16 @@
                     "additionalProperties": false,
                     "markdownDescription": "Command that consists in applying a given component definition, typically bound to a workspace event.\n\nFor example, when an `apply` command is bound to a `preStart` event, and references a `container` component, it will start the container as a K8S initContainer in the workspace POD, unless the component has its `dedicatedPod` field set to `true`.\n\nWhen no `apply` command exist for a given component, it is assumed the component will be applied at workspace start by default."
                   },
+                  "attributes": {
+                    "description": "Map of implementation-dependant free-form YAML attributes.",
+                    "type": "object",
+                    "additionalProperties": true,
+                    "markdownDescription": "Map of implementation-dependant free-form YAML attributes."
+                  },
                   "composite": {
                     "description": "Composite command that allows executing several sub-commands either sequentially or concurrently",
                     "type": "object",
                     "properties": {
-                      "attributes": {
-                        "description": "Optional map of free-form additional command attributes",
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "string"
-                        },
-                        "markdownDescription": "Optional map of free-form additional command attributes"
-                      },
                       "commands": {
                         "description": "The commands that comprise this composite command",
                         "type": "array",
@@ -377,14 +370,6 @@
                       "embeddedResource"
                     ],
                     "properties": {
-                      "attributes": {
-                        "description": "Optional map of free-form additional command attributes",
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "string"
-                        },
-                        "markdownDescription": "Optional map of free-form additional command attributes"
-                      },
                       "commandClass": {
                         "description": "Class of command that the associated implementation component should use to process this command with the appropriate logic",
                         "type": "string",
@@ -436,17 +421,10 @@
                     "description": "CLI Command executed in an existing component container",
                     "type": "object",
                     "required": [
-                      "commandLine"
+                      "commandLine",
+                      "component"
                     ],
                     "properties": {
-                      "attributes": {
-                        "description": "Optional map of free-form additional command attributes",
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "string"
-                        },
-                        "markdownDescription": "Optional map of free-form additional command attributes"
-                      },
                       "commandLine": {
                         "description": "The actual command-line string\n\nSpecial variables that can be used:\n\n - `$PROJECTS_ROOT`: A path where projects sources are mounted as defined by container component's sourceMapping.\n\n - `$PROJECT_SOURCE`: A path to a project source ($PROJECTS_ROOT/\u003cproject-name\u003e). If there are multiple projects, this will point to the directory of the first one.",
                         "type": "string",
@@ -527,6 +505,8 @@
                   "id": {
                     "description": "Mandatory identifier that allows referencing this command in composite commands, from a parent, or in events.",
                     "type": "string",
+                    "maxLength": 63,
+                    "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
                     "markdownDescription": "Mandatory identifier that allows referencing this command in composite commands, from a parent, or in events."
                   },
                   "vscodeLaunch": {
@@ -545,14 +525,6 @@
                       }
                     ],
                     "properties": {
-                      "attributes": {
-                        "description": "Optional map of free-form additional command attributes",
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "string"
-                        },
-                        "markdownDescription": "Optional map of free-form additional command attributes"
-                      },
                       "group": {
                         "description": "Defines the group this command is part of",
                         "type": "object",
@@ -610,14 +582,6 @@
                       }
                     ],
                     "properties": {
-                      "attributes": {
-                        "description": "Optional map of free-form additional command attributes",
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "string"
-                        },
-                        "markdownDescription": "Optional map of free-form additional command attributes"
-                      },
                       "group": {
                         "description": "Defines the group this command is part of",
                         "type": "object",
@@ -705,6 +669,12 @@
                   }
                 ],
                 "properties": {
+                  "attributes": {
+                    "description": "Map of implementation-dependant free-form YAML attributes.",
+                    "type": "object",
+                    "additionalProperties": true,
+                    "markdownDescription": "Map of implementation-dependant free-form YAML attributes."
+                  },
                   "container": {
                     "description": "Allows adding and configuring workspace-related containers",
                     "type": "object",
@@ -728,6 +698,12 @@
                         },
                         "markdownDescription": "The command to run in the dockerimage component instead of the default one provided in the image.\n\nDefaults to an empty array, meaning use whatever is defined in the image."
                       },
+                      "cpuLimit": {
+                        "type": "string"
+                      },
+                      "cpuRequest": {
+                        "type": "string"
+                      },
                       "dedicatedPod": {
                         "description": "Specify if a container should run in its own separated pod, instead of running as part of the main development environment pod.\n\nDefault value is `false`",
                         "type": "boolean",
@@ -745,9 +721,7 @@
                             "attributes": {
                               "description": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\",",
                               "type": "object",
-                              "additionalProperties": {
-                                "type": "string"
-                              },
+                              "additionalProperties": true,
                               "markdownDescription": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\","
                             },
                             "exposure": {
@@ -761,7 +735,9 @@
                               "markdownDescription": "Describes how the endpoint should be exposed on the network.\n- `public` means that the endpoint will be exposed on the public network, typically through a K8S ingress or an OpenShift route.\n- `internal` means that the endpoint will be exposed internally outside of the main workspace POD, typically by K8S services, to be consumed by other elements running on the same cloud internal network.\n- `none` means that the endpoint will not be exposed and will only be accessible inside the main workspace POD, on a local address.\n\nDefault value is `public`"
                             },
                             "name": {
-                              "type": "string"
+                              "type": "string",
+                              "maxLength": 63,
+                              "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
                             },
                             "path": {
                               "description": "Path of the endpoint URL",
@@ -771,12 +747,20 @@
                             "protocol": {
                               "description": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`",
                               "type": "string",
+                              "enum": [
+                                "http",
+                                "https",
+                                "ws",
+                                "wss",
+                                "tcp",
+                                "udp"
+                              ],
                               "markdownDescription": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`"
                             },
                             "secure": {
-                              "description": "Describes whether the endpoint should be secured and protected by some authentication process",
+                              "description": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`.",
                               "type": "boolean",
-                              "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process"
+                              "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`."
                             },
                             "targetPort": {
                               "type": "integer"
@@ -812,6 +796,9 @@
                       "memoryLimit": {
                         "type": "string"
                       },
+                      "memoryRequest": {
+                        "type": "string"
+                      },
                       "mountSources": {
                         "description": "Toggles whether or not the project source code should be mounted in the component.\n\nDefaults to true for all component types except plugins and components that set `dedicatedPod` to true.",
                         "type": "boolean",
@@ -835,6 +822,8 @@
                             "name": {
                               "description": "The volume mount name is the name of an existing `Volume` component. If several containers mount the same volume name then they will reuse the same volume and will be able to access to the same files.",
                               "type": "string",
+                              "maxLength": 63,
+                              "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
                               "markdownDescription": "The volume mount name is the name of an existing `Volume` component. If several containers mount the same volume name then they will reuse the same volume and will be able to access to the same files."
                             },
                             "path": {
@@ -903,9 +892,7 @@
                             "attributes": {
                               "description": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\",",
                               "type": "object",
-                              "additionalProperties": {
-                                "type": "string"
-                              },
+                              "additionalProperties": true,
                               "markdownDescription": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\","
                             },
                             "exposure": {
@@ -919,7 +906,9 @@
                               "markdownDescription": "Describes how the endpoint should be exposed on the network.\n- `public` means that the endpoint will be exposed on the public network, typically through a K8S ingress or an OpenShift route.\n- `internal` means that the endpoint will be exposed internally outside of the main workspace POD, typically by K8S services, to be consumed by other elements running on the same cloud internal network.\n- `none` means that the endpoint will not be exposed and will only be accessible inside the main workspace POD, on a local address.\n\nDefault value is `public`"
                             },
                             "name": {
-                              "type": "string"
+                              "type": "string",
+                              "maxLength": 63,
+                              "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
                             },
                             "path": {
                               "description": "Path of the endpoint URL",
@@ -929,12 +918,20 @@
                             "protocol": {
                               "description": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`",
                               "type": "string",
+                              "enum": [
+                                "http",
+                                "https",
+                                "ws",
+                                "wss",
+                                "tcp",
+                                "udp"
+                              ],
                               "markdownDescription": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`"
                             },
                             "secure": {
-                              "description": "Describes whether the endpoint should be secured and protected by some authentication process",
+                              "description": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`.",
                               "type": "boolean",
-                              "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process"
+                              "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`."
                             },
                             "targetPort": {
                               "type": "integer"
@@ -960,6 +957,8 @@
                   "name": {
                     "description": "Mandatory name that allows referencing the component from other elements (such as commands) or from an external devfile that may reference this component through a parent or a plugin.",
                     "type": "string",
+                    "maxLength": 63,
+                    "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
                     "markdownDescription": "Mandatory name that allows referencing the component from other elements (such as commands) or from an external devfile that may reference this component through a parent or a plugin."
                   },
                   "openshift": {
@@ -990,9 +989,7 @@
                             "attributes": {
                               "description": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\",",
                               "type": "object",
-                              "additionalProperties": {
-                                "type": "string"
-                              },
+                              "additionalProperties": true,
                               "markdownDescription": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\","
                             },
                             "exposure": {
@@ -1006,7 +1003,9 @@
                               "markdownDescription": "Describes how the endpoint should be exposed on the network.\n- `public` means that the endpoint will be exposed on the public network, typically through a K8S ingress or an OpenShift route.\n- `internal` means that the endpoint will be exposed internally outside of the main workspace POD, typically by K8S services, to be consumed by other elements running on the same cloud internal network.\n- `none` means that the endpoint will not be exposed and will only be accessible inside the main workspace POD, on a local address.\n\nDefault value is `public`"
                             },
                             "name": {
-                              "type": "string"
+                              "type": "string",
+                              "maxLength": 63,
+                              "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
                             },
                             "path": {
                               "description": "Path of the endpoint URL",
@@ -1016,12 +1015,20 @@
                             "protocol": {
                               "description": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`",
                               "type": "string",
+                              "enum": [
+                                "http",
+                                "https",
+                                "ws",
+                                "wss",
+                                "tcp",
+                                "udp"
+                              ],
                               "markdownDescription": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`"
                             },
                             "secure": {
-                              "description": "Describes whether the endpoint should be secured and protected by some authentication process",
+                              "description": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`.",
                               "type": "boolean",
-                              "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process"
+                              "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`."
                             },
                             "targetPort": {
                               "type": "integer"
@@ -1105,14 +1112,6 @@
                               "description": "Command that consists in applying a given component definition, typically bound to a workspace event.\n\nFor example, when an `apply` command is bound to a `preStart` event, and references a `container` component, it will start the container as a K8S initContainer in the workspace POD, unless the component has its `dedicatedPod` field set to `true`.\n\nWhen no `apply` command exist for a given component, it is assumed the component will be applied at workspace start by default.",
                               "type": "object",
                               "properties": {
-                                "attributes": {
-                                  "description": "Optional map of free-form additional command attributes",
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  },
-                                  "markdownDescription": "Optional map of free-form additional command attributes"
-                                },
                                 "component": {
                                   "description": "Describes component that will be applied",
                                   "type": "string",
@@ -1151,18 +1150,16 @@
                               "additionalProperties": false,
                               "markdownDescription": "Command that consists in applying a given component definition, typically bound to a workspace event.\n\nFor example, when an `apply` command is bound to a `preStart` event, and references a `container` component, it will start the container as a K8S initContainer in the workspace POD, unless the component has its `dedicatedPod` field set to `true`.\n\nWhen no `apply` command exist for a given component, it is assumed the component will be applied at workspace start by default."
                             },
+                            "attributes": {
+                              "description": "Map of implementation-dependant free-form YAML attributes.",
+                              "type": "object",
+                              "additionalProperties": true,
+                              "markdownDescription": "Map of implementation-dependant free-form YAML attributes."
+                            },
                             "composite": {
                               "description": "Composite command that allows executing several sub-commands either sequentially or concurrently",
                               "type": "object",
                               "properties": {
-                                "attributes": {
-                                  "description": "Optional map of free-form additional command attributes",
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  },
-                                  "markdownDescription": "Optional map of free-form additional command attributes"
-                                },
                                 "commands": {
                                   "description": "The commands that comprise this composite command",
                                   "type": "array",
@@ -1213,14 +1210,6 @@
                               "description": "CLI Command executed in an existing component container",
                               "type": "object",
                               "properties": {
-                                "attributes": {
-                                  "description": "Optional map of free-form additional command attributes",
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  },
-                                  "markdownDescription": "Optional map of free-form additional command attributes"
-                                },
                                 "commandLine": {
                                   "description": "The actual command-line string\n\nSpecial variables that can be used:\n\n - `$PROJECTS_ROOT`: A path where projects sources are mounted as defined by container component's sourceMapping.\n\n - `$PROJECT_SOURCE`: A path to a project source ($PROJECTS_ROOT/\u003cproject-name\u003e). If there are multiple projects, this will point to the directory of the first one.",
                                   "type": "string",
@@ -1297,6 +1286,8 @@
                             "id": {
                               "description": "Mandatory identifier that allows referencing this command in composite commands, from a parent, or in events.",
                               "type": "string",
+                              "maxLength": 63,
+                              "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
                               "markdownDescription": "Mandatory identifier that allows referencing this command in composite commands, from a parent, or in events."
                             },
                             "vscodeLaunch": {
@@ -1315,14 +1306,6 @@
                                 }
                               ],
                               "properties": {
-                                "attributes": {
-                                  "description": "Optional map of free-form additional command attributes",
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  },
-                                  "markdownDescription": "Optional map of free-form additional command attributes"
-                                },
                                 "group": {
                                   "description": "Defines the group this command is part of",
                                   "type": "object",
@@ -1377,14 +1360,6 @@
                                 }
                               ],
                               "properties": {
-                                "attributes": {
-                                  "description": "Optional map of free-form additional command attributes",
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  },
-                                  "markdownDescription": "Optional map of free-form additional command attributes"
-                                },
                                 "group": {
                                   "description": "Defines the group this command is part of",
                                   "type": "object",
@@ -1459,6 +1434,12 @@
                             }
                           ],
                           "properties": {
+                            "attributes": {
+                              "description": "Map of implementation-dependant free-form YAML attributes.",
+                              "type": "object",
+                              "additionalProperties": true,
+                              "markdownDescription": "Map of implementation-dependant free-form YAML attributes."
+                            },
                             "container": {
                               "description": "Allows adding and configuring workspace-related containers",
                               "type": "object",
@@ -1479,6 +1460,12 @@
                                   },
                                   "markdownDescription": "The command to run in the dockerimage component instead of the default one provided in the image.\n\nDefaults to an empty array, meaning use whatever is defined in the image."
                                 },
+                                "cpuLimit": {
+                                  "type": "string"
+                                },
+                                "cpuRequest": {
+                                  "type": "string"
+                                },
                                 "dedicatedPod": {
                                   "description": "Specify if a container should run in its own separated pod, instead of running as part of the main development environment pod.\n\nDefault value is `false`",
                                   "type": "boolean",
@@ -1495,9 +1482,7 @@
                                       "attributes": {
                                         "description": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\",",
                                         "type": "object",
-                                        "additionalProperties": {
-                                          "type": "string"
-                                        },
+                                        "additionalProperties": true,
                                         "markdownDescription": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\","
                                       },
                                       "exposure": {
@@ -1511,7 +1496,9 @@
                                         "markdownDescription": "Describes how the endpoint should be exposed on the network.\n- `public` means that the endpoint will be exposed on the public network, typically through a K8S ingress or an OpenShift route.\n- `internal` means that the endpoint will be exposed internally outside of the main workspace POD, typically by K8S services, to be consumed by other elements running on the same cloud internal network.\n- `none` means that the endpoint will not be exposed and will only be accessible inside the main workspace POD, on a local address.\n\nDefault value is `public`"
                                       },
                                       "name": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "maxLength": 63,
+                                        "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
                                       },
                                       "path": {
                                         "description": "Path of the endpoint URL",
@@ -1521,12 +1508,20 @@
                                       "protocol": {
                                         "description": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`",
                                         "type": "string",
+                                        "enum": [
+                                          "http",
+                                          "https",
+                                          "ws",
+                                          "wss",
+                                          "tcp",
+                                          "udp"
+                                        ],
                                         "markdownDescription": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`"
                                       },
                                       "secure": {
-                                        "description": "Describes whether the endpoint should be secured and protected by some authentication process",
+                                        "description": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`.",
                                         "type": "boolean",
-                                        "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process"
+                                        "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`."
                                       },
                                       "targetPort": {
                                         "type": "integer"
@@ -1561,6 +1556,9 @@
                                 "memoryLimit": {
                                   "type": "string"
                                 },
+                                "memoryRequest": {
+                                  "type": "string"
+                                },
                                 "mountSources": {
                                   "description": "Toggles whether or not the project source code should be mounted in the component.\n\nDefaults to true for all component types except plugins and components that set `dedicatedPod` to true.",
                                   "type": "boolean",
@@ -1584,6 +1582,8 @@
                                       "name": {
                                         "description": "The volume mount name is the name of an existing `Volume` component. If several containers mount the same volume name then they will reuse the same volume and will be able to access to the same files.",
                                         "type": "string",
+                                        "maxLength": 63,
+                                        "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
                                         "markdownDescription": "The volume mount name is the name of an existing `Volume` component. If several containers mount the same volume name then they will reuse the same volume and will be able to access to the same files."
                                       },
                                       "path": {
@@ -1628,9 +1628,7 @@
                                       "attributes": {
                                         "description": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\",",
                                         "type": "object",
-                                        "additionalProperties": {
-                                          "type": "string"
-                                        },
+                                        "additionalProperties": true,
                                         "markdownDescription": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\","
                                       },
                                       "exposure": {
@@ -1644,7 +1642,9 @@
                                         "markdownDescription": "Describes how the endpoint should be exposed on the network.\n- `public` means that the endpoint will be exposed on the public network, typically through a K8S ingress or an OpenShift route.\n- `internal` means that the endpoint will be exposed internally outside of the main workspace POD, typically by K8S services, to be consumed by other elements running on the same cloud internal network.\n- `none` means that the endpoint will not be exposed and will only be accessible inside the main workspace POD, on a local address.\n\nDefault value is `public`"
                                       },
                                       "name": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "maxLength": 63,
+                                        "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
                                       },
                                       "path": {
                                         "description": "Path of the endpoint URL",
@@ -1654,12 +1654,20 @@
                                       "protocol": {
                                         "description": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`",
                                         "type": "string",
+                                        "enum": [
+                                          "http",
+                                          "https",
+                                          "ws",
+                                          "wss",
+                                          "tcp",
+                                          "udp"
+                                        ],
                                         "markdownDescription": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`"
                                       },
                                       "secure": {
-                                        "description": "Describes whether the endpoint should be secured and protected by some authentication process",
+                                        "description": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`.",
                                         "type": "boolean",
-                                        "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process"
+                                        "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`."
                                       },
                                       "targetPort": {
                                         "type": "integer"
@@ -1685,6 +1693,8 @@
                             "name": {
                               "description": "Mandatory name that allows referencing the component from other elements (such as commands) or from an external devfile that may reference this component through a parent or a plugin.",
                               "type": "string",
+                              "maxLength": 63,
+                              "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
                               "markdownDescription": "Mandatory name that allows referencing the component from other elements (such as commands) or from an external devfile that may reference this component through a parent or a plugin."
                             },
                             "openshift": {
@@ -1714,9 +1724,7 @@
                                       "attributes": {
                                         "description": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\",",
                                         "type": "object",
-                                        "additionalProperties": {
-                                          "type": "string"
-                                        },
+                                        "additionalProperties": true,
                                         "markdownDescription": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\","
                                       },
                                       "exposure": {
@@ -1730,7 +1738,9 @@
                                         "markdownDescription": "Describes how the endpoint should be exposed on the network.\n- `public` means that the endpoint will be exposed on the public network, typically through a K8S ingress or an OpenShift route.\n- `internal` means that the endpoint will be exposed internally outside of the main workspace POD, typically by K8S services, to be consumed by other elements running on the same cloud internal network.\n- `none` means that the endpoint will not be exposed and will only be accessible inside the main workspace POD, on a local address.\n\nDefault value is `public`"
                                       },
                                       "name": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "maxLength": 63,
+                                        "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
                                       },
                                       "path": {
                                         "description": "Path of the endpoint URL",
@@ -1740,12 +1750,20 @@
                                       "protocol": {
                                         "description": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`",
                                         "type": "string",
+                                        "enum": [
+                                          "http",
+                                          "https",
+                                          "ws",
+                                          "wss",
+                                          "tcp",
+                                          "udp"
+                                        ],
                                         "markdownDescription": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`"
                                       },
                                       "secure": {
-                                        "description": "Describes whether the endpoint should be secured and protected by some authentication process",
+                                        "description": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`.",
                                         "type": "boolean",
-                                        "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process"
+                                        "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`."
                                       },
                                       "targetPort": {
                                         "type": "integer"
@@ -1772,6 +1790,11 @@
                               "description": "Allows specifying the definition of a volume shared by several other components",
                               "type": "object",
                               "properties": {
+                                "ephemeral": {
+                                  "description": "Ephemeral volumes are not stored persistently across restarts. Defaults to false",
+                                  "type": "boolean",
+                                  "markdownDescription": "Ephemeral volumes are not stored persistently across restarts. Defaults to false"
+                                },
                                 "size": {
                                   "description": "Size of the volume",
                                   "type": "string",
@@ -1824,6 +1847,11 @@
                     "description": "Allows specifying the definition of a volume shared by several other components",
                     "type": "object",
                     "properties": {
+                      "ephemeral": {
+                        "description": "Ephemeral volumes are not stored persistently across restarts. Defaults to false",
+                        "type": "boolean",
+                        "markdownDescription": "Ephemeral volumes are not stored persistently across restarts. Defaults to false"
+                      },
                       "size": {
                         "description": "Size of the volume",
                         "type": "string",
@@ -1843,36 +1871,36 @@
               "type": "object",
               "properties": {
                 "postStart": {
-                  "description": "Names of commands that should be executed after the workspace is completely started. In the case of Che-Theia, these commands should be executed after all plugins and extensions have started, including project cloning. This means that those commands are not triggered until the user opens the IDE in his browser.",
+                  "description": "IDs of commands that should be executed after the workspace is completely started. In the case of Che-Theia, these commands should be executed after all plugins and extensions have started, including project cloning. This means that those commands are not triggered until the user opens the IDE in his browser.",
                   "type": "array",
                   "items": {
                     "type": "string"
                   },
-                  "markdownDescription": "Names of commands that should be executed after the workspace is completely started. In the case of Che-Theia, these commands should be executed after all plugins and extensions have started, including project cloning. This means that those commands are not triggered until the user opens the IDE in his browser."
+                  "markdownDescription": "IDs of commands that should be executed after the workspace is completely started. In the case of Che-Theia, these commands should be executed after all plugins and extensions have started, including project cloning. This means that those commands are not triggered until the user opens the IDE in his browser."
                 },
                 "postStop": {
-                  "description": "Names of commands that should be executed after stopping the workspace.",
+                  "description": "IDs of commands that should be executed after stopping the workspace.",
                   "type": "array",
                   "items": {
                     "type": "string"
                   },
-                  "markdownDescription": "Names of commands that should be executed after stopping the workspace."
+                  "markdownDescription": "IDs of commands that should be executed after stopping the workspace."
                 },
                 "preStart": {
-                  "description": "Names of commands that should be executed before the workspace start. Kubernetes-wise, these commands would typically be executed in init containers of the workspace POD.",
+                  "description": "IDs of commands that should be executed before the workspace start. Kubernetes-wise, these commands would typically be executed in init containers of the workspace POD.",
                   "type": "array",
                   "items": {
                     "type": "string"
                   },
-                  "markdownDescription": "Names of commands that should be executed before the workspace start. Kubernetes-wise, these commands would typically be executed in init containers of the workspace POD."
+                  "markdownDescription": "IDs of commands that should be executed before the workspace start. Kubernetes-wise, these commands would typically be executed in init containers of the workspace POD."
                 },
                 "preStop": {
-                  "description": "Names of commands that should be executed before stopping the workspace.",
+                  "description": "IDs of commands that should be executed before stopping the workspace.",
                   "type": "array",
                   "items": {
                     "type": "string"
                   },
-                  "markdownDescription": "Names of commands that should be executed before stopping the workspace."
+                  "markdownDescription": "IDs of commands that should be executed before stopping the workspace."
                 }
               },
               "additionalProperties": false,
@@ -1939,14 +1967,6 @@
                         "description": "Command that consists in applying a given component definition, typically bound to a workspace event.\n\nFor example, when an `apply` command is bound to a `preStart` event, and references a `container` component, it will start the container as a K8S initContainer in the workspace POD, unless the component has its `dedicatedPod` field set to `true`.\n\nWhen no `apply` command exist for a given component, it is assumed the component will be applied at workspace start by default.",
                         "type": "object",
                         "properties": {
-                          "attributes": {
-                            "description": "Optional map of free-form additional command attributes",
-                            "type": "object",
-                            "additionalProperties": {
-                              "type": "string"
-                            },
-                            "markdownDescription": "Optional map of free-form additional command attributes"
-                          },
                           "component": {
                             "description": "Describes component that will be applied",
                             "type": "string",
@@ -1985,18 +2005,16 @@
                         "additionalProperties": false,
                         "markdownDescription": "Command that consists in applying a given component definition, typically bound to a workspace event.\n\nFor example, when an `apply` command is bound to a `preStart` event, and references a `container` component, it will start the container as a K8S initContainer in the workspace POD, unless the component has its `dedicatedPod` field set to `true`.\n\nWhen no `apply` command exist for a given component, it is assumed the component will be applied at workspace start by default."
                       },
+                      "attributes": {
+                        "description": "Map of implementation-dependant free-form YAML attributes.",
+                        "type": "object",
+                        "additionalProperties": true,
+                        "markdownDescription": "Map of implementation-dependant free-form YAML attributes."
+                      },
                       "composite": {
                         "description": "Composite command that allows executing several sub-commands either sequentially or concurrently",
                         "type": "object",
                         "properties": {
-                          "attributes": {
-                            "description": "Optional map of free-form additional command attributes",
-                            "type": "object",
-                            "additionalProperties": {
-                              "type": "string"
-                            },
-                            "markdownDescription": "Optional map of free-form additional command attributes"
-                          },
                           "commands": {
                             "description": "The commands that comprise this composite command",
                             "type": "array",
@@ -2047,14 +2065,6 @@
                         "description": "CLI Command executed in an existing component container",
                         "type": "object",
                         "properties": {
-                          "attributes": {
-                            "description": "Optional map of free-form additional command attributes",
-                            "type": "object",
-                            "additionalProperties": {
-                              "type": "string"
-                            },
-                            "markdownDescription": "Optional map of free-form additional command attributes"
-                          },
                           "commandLine": {
                             "description": "The actual command-line string\n\nSpecial variables that can be used:\n\n - `$PROJECTS_ROOT`: A path where projects sources are mounted as defined by container component's sourceMapping.\n\n - `$PROJECT_SOURCE`: A path to a project source ($PROJECTS_ROOT/\u003cproject-name\u003e). If there are multiple projects, this will point to the directory of the first one.",
                             "type": "string",
@@ -2131,6 +2141,8 @@
                       "id": {
                         "description": "Mandatory identifier that allows referencing this command in composite commands, from a parent, or in events.",
                         "type": "string",
+                        "maxLength": 63,
+                        "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
                         "markdownDescription": "Mandatory identifier that allows referencing this command in composite commands, from a parent, or in events."
                       },
                       "vscodeLaunch": {
@@ -2149,14 +2161,6 @@
                           }
                         ],
                         "properties": {
-                          "attributes": {
-                            "description": "Optional map of free-form additional command attributes",
-                            "type": "object",
-                            "additionalProperties": {
-                              "type": "string"
-                            },
-                            "markdownDescription": "Optional map of free-form additional command attributes"
-                          },
                           "group": {
                             "description": "Defines the group this command is part of",
                             "type": "object",
@@ -2211,14 +2215,6 @@
                           }
                         ],
                         "properties": {
-                          "attributes": {
-                            "description": "Optional map of free-form additional command attributes",
-                            "type": "object",
-                            "additionalProperties": {
-                              "type": "string"
-                            },
-                            "markdownDescription": "Optional map of free-form additional command attributes"
-                          },
                           "group": {
                             "description": "Defines the group this command is part of",
                             "type": "object",
@@ -2298,6 +2294,12 @@
                       }
                     ],
                     "properties": {
+                      "attributes": {
+                        "description": "Map of implementation-dependant free-form YAML attributes.",
+                        "type": "object",
+                        "additionalProperties": true,
+                        "markdownDescription": "Map of implementation-dependant free-form YAML attributes."
+                      },
                       "container": {
                         "description": "Allows adding and configuring workspace-related containers",
                         "type": "object",
@@ -2318,6 +2320,12 @@
                             },
                             "markdownDescription": "The command to run in the dockerimage component instead of the default one provided in the image.\n\nDefaults to an empty array, meaning use whatever is defined in the image."
                           },
+                          "cpuLimit": {
+                            "type": "string"
+                          },
+                          "cpuRequest": {
+                            "type": "string"
+                          },
                           "dedicatedPod": {
                             "description": "Specify if a container should run in its own separated pod, instead of running as part of the main development environment pod.\n\nDefault value is `false`",
                             "type": "boolean",
@@ -2334,9 +2342,7 @@
                                 "attributes": {
                                   "description": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\",",
                                   "type": "object",
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  },
+                                  "additionalProperties": true,
                                   "markdownDescription": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\","
                                 },
                                 "exposure": {
@@ -2350,7 +2356,9 @@
                                   "markdownDescription": "Describes how the endpoint should be exposed on the network.\n- `public` means that the endpoint will be exposed on the public network, typically through a K8S ingress or an OpenShift route.\n- `internal` means that the endpoint will be exposed internally outside of the main workspace POD, typically by K8S services, to be consumed by other elements running on the same cloud internal network.\n- `none` means that the endpoint will not be exposed and will only be accessible inside the main workspace POD, on a local address.\n\nDefault value is `public`"
                                 },
                                 "name": {
-                                  "type": "string"
+                                  "type": "string",
+                                  "maxLength": 63,
+                                  "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
                                 },
                                 "path": {
                                   "description": "Path of the endpoint URL",
@@ -2360,12 +2368,20 @@
                                 "protocol": {
                                   "description": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`",
                                   "type": "string",
+                                  "enum": [
+                                    "http",
+                                    "https",
+                                    "ws",
+                                    "wss",
+                                    "tcp",
+                                    "udp"
+                                  ],
                                   "markdownDescription": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`"
                                 },
                                 "secure": {
-                                  "description": "Describes whether the endpoint should be secured and protected by some authentication process",
+                                  "description": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`.",
                                   "type": "boolean",
-                                  "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process"
+                                  "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`."
                                 },
                                 "targetPort": {
                                   "type": "integer"
@@ -2400,6 +2416,9 @@
                           "memoryLimit": {
                             "type": "string"
                           },
+                          "memoryRequest": {
+                            "type": "string"
+                          },
                           "mountSources": {
                             "description": "Toggles whether or not the project source code should be mounted in the component.\n\nDefaults to true for all component types except plugins and components that set `dedicatedPod` to true.",
                             "type": "boolean",
@@ -2423,6 +2442,8 @@
                                 "name": {
                                   "description": "The volume mount name is the name of an existing `Volume` component. If several containers mount the same volume name then they will reuse the same volume and will be able to access to the same files.",
                                   "type": "string",
+                                  "maxLength": 63,
+                                  "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
                                   "markdownDescription": "The volume mount name is the name of an existing `Volume` component. If several containers mount the same volume name then they will reuse the same volume and will be able to access to the same files."
                                 },
                                 "path": {
@@ -2467,9 +2488,7 @@
                                 "attributes": {
                                   "description": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\",",
                                   "type": "object",
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  },
+                                  "additionalProperties": true,
                                   "markdownDescription": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\","
                                 },
                                 "exposure": {
@@ -2483,7 +2502,9 @@
                                   "markdownDescription": "Describes how the endpoint should be exposed on the network.\n- `public` means that the endpoint will be exposed on the public network, typically through a K8S ingress or an OpenShift route.\n- `internal` means that the endpoint will be exposed internally outside of the main workspace POD, typically by K8S services, to be consumed by other elements running on the same cloud internal network.\n- `none` means that the endpoint will not be exposed and will only be accessible inside the main workspace POD, on a local address.\n\nDefault value is `public`"
                                 },
                                 "name": {
-                                  "type": "string"
+                                  "type": "string",
+                                  "maxLength": 63,
+                                  "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
                                 },
                                 "path": {
                                   "description": "Path of the endpoint URL",
@@ -2493,12 +2514,20 @@
                                 "protocol": {
                                   "description": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`",
                                   "type": "string",
+                                  "enum": [
+                                    "http",
+                                    "https",
+                                    "ws",
+                                    "wss",
+                                    "tcp",
+                                    "udp"
+                                  ],
                                   "markdownDescription": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`"
                                 },
                                 "secure": {
-                                  "description": "Describes whether the endpoint should be secured and protected by some authentication process",
+                                  "description": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`.",
                                   "type": "boolean",
-                                  "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process"
+                                  "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`."
                                 },
                                 "targetPort": {
                                   "type": "integer"
@@ -2524,6 +2553,8 @@
                       "name": {
                         "description": "Mandatory name that allows referencing the component from other elements (such as commands) or from an external devfile that may reference this component through a parent or a plugin.",
                         "type": "string",
+                        "maxLength": 63,
+                        "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
                         "markdownDescription": "Mandatory name that allows referencing the component from other elements (such as commands) or from an external devfile that may reference this component through a parent or a plugin."
                       },
                       "openshift": {
@@ -2553,9 +2584,7 @@
                                 "attributes": {
                                   "description": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\",",
                                   "type": "object",
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  },
+                                  "additionalProperties": true,
                                   "markdownDescription": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\","
                                 },
                                 "exposure": {
@@ -2569,7 +2598,9 @@
                                   "markdownDescription": "Describes how the endpoint should be exposed on the network.\n- `public` means that the endpoint will be exposed on the public network, typically through a K8S ingress or an OpenShift route.\n- `internal` means that the endpoint will be exposed internally outside of the main workspace POD, typically by K8S services, to be consumed by other elements running on the same cloud internal network.\n- `none` means that the endpoint will not be exposed and will only be accessible inside the main workspace POD, on a local address.\n\nDefault value is `public`"
                                 },
                                 "name": {
-                                  "type": "string"
+                                  "type": "string",
+                                  "maxLength": 63,
+                                  "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
                                 },
                                 "path": {
                                   "description": "Path of the endpoint URL",
@@ -2579,12 +2610,20 @@
                                 "protocol": {
                                   "description": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`",
                                   "type": "string",
+                                  "enum": [
+                                    "http",
+                                    "https",
+                                    "ws",
+                                    "wss",
+                                    "tcp",
+                                    "udp"
+                                  ],
                                   "markdownDescription": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`"
                                 },
                                 "secure": {
-                                  "description": "Describes whether the endpoint should be secured and protected by some authentication process",
+                                  "description": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`.",
                                   "type": "boolean",
-                                  "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process"
+                                  "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`."
                                 },
                                 "targetPort": {
                                   "type": "integer"
@@ -2668,14 +2707,6 @@
                                   "description": "Command that consists in applying a given component definition, typically bound to a workspace event.\n\nFor example, when an `apply` command is bound to a `preStart` event, and references a `container` component, it will start the container as a K8S initContainer in the workspace POD, unless the component has its `dedicatedPod` field set to `true`.\n\nWhen no `apply` command exist for a given component, it is assumed the component will be applied at workspace start by default.",
                                   "type": "object",
                                   "properties": {
-                                    "attributes": {
-                                      "description": "Optional map of free-form additional command attributes",
-                                      "type": "object",
-                                      "additionalProperties": {
-                                        "type": "string"
-                                      },
-                                      "markdownDescription": "Optional map of free-form additional command attributes"
-                                    },
                                     "component": {
                                       "description": "Describes component that will be applied",
                                       "type": "string",
@@ -2714,18 +2745,16 @@
                                   "additionalProperties": false,
                                   "markdownDescription": "Command that consists in applying a given component definition, typically bound to a workspace event.\n\nFor example, when an `apply` command is bound to a `preStart` event, and references a `container` component, it will start the container as a K8S initContainer in the workspace POD, unless the component has its `dedicatedPod` field set to `true`.\n\nWhen no `apply` command exist for a given component, it is assumed the component will be applied at workspace start by default."
                                 },
+                                "attributes": {
+                                  "description": "Map of implementation-dependant free-form YAML attributes.",
+                                  "type": "object",
+                                  "additionalProperties": true,
+                                  "markdownDescription": "Map of implementation-dependant free-form YAML attributes."
+                                },
                                 "composite": {
                                   "description": "Composite command that allows executing several sub-commands either sequentially or concurrently",
                                   "type": "object",
                                   "properties": {
-                                    "attributes": {
-                                      "description": "Optional map of free-form additional command attributes",
-                                      "type": "object",
-                                      "additionalProperties": {
-                                        "type": "string"
-                                      },
-                                      "markdownDescription": "Optional map of free-form additional command attributes"
-                                    },
                                     "commands": {
                                       "description": "The commands that comprise this composite command",
                                       "type": "array",
@@ -2776,14 +2805,6 @@
                                   "description": "CLI Command executed in an existing component container",
                                   "type": "object",
                                   "properties": {
-                                    "attributes": {
-                                      "description": "Optional map of free-form additional command attributes",
-                                      "type": "object",
-                                      "additionalProperties": {
-                                        "type": "string"
-                                      },
-                                      "markdownDescription": "Optional map of free-form additional command attributes"
-                                    },
                                     "commandLine": {
                                       "description": "The actual command-line string\n\nSpecial variables that can be used:\n\n - `$PROJECTS_ROOT`: A path where projects sources are mounted as defined by container component's sourceMapping.\n\n - `$PROJECT_SOURCE`: A path to a project source ($PROJECTS_ROOT/\u003cproject-name\u003e). If there are multiple projects, this will point to the directory of the first one.",
                                       "type": "string",
@@ -2860,6 +2881,8 @@
                                 "id": {
                                   "description": "Mandatory identifier that allows referencing this command in composite commands, from a parent, or in events.",
                                   "type": "string",
+                                  "maxLength": 63,
+                                  "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
                                   "markdownDescription": "Mandatory identifier that allows referencing this command in composite commands, from a parent, or in events."
                                 },
                                 "vscodeLaunch": {
@@ -2878,14 +2901,6 @@
                                     }
                                   ],
                                   "properties": {
-                                    "attributes": {
-                                      "description": "Optional map of free-form additional command attributes",
-                                      "type": "object",
-                                      "additionalProperties": {
-                                        "type": "string"
-                                      },
-                                      "markdownDescription": "Optional map of free-form additional command attributes"
-                                    },
                                     "group": {
                                       "description": "Defines the group this command is part of",
                                       "type": "object",
@@ -2940,14 +2955,6 @@
                                     }
                                   ],
                                   "properties": {
-                                    "attributes": {
-                                      "description": "Optional map of free-form additional command attributes",
-                                      "type": "object",
-                                      "additionalProperties": {
-                                        "type": "string"
-                                      },
-                                      "markdownDescription": "Optional map of free-form additional command attributes"
-                                    },
                                     "group": {
                                       "description": "Defines the group this command is part of",
                                       "type": "object",
@@ -3022,6 +3029,12 @@
                                 }
                               ],
                               "properties": {
+                                "attributes": {
+                                  "description": "Map of implementation-dependant free-form YAML attributes.",
+                                  "type": "object",
+                                  "additionalProperties": true,
+                                  "markdownDescription": "Map of implementation-dependant free-form YAML attributes."
+                                },
                                 "container": {
                                   "description": "Allows adding and configuring workspace-related containers",
                                   "type": "object",
@@ -3042,6 +3055,12 @@
                                       },
                                       "markdownDescription": "The command to run in the dockerimage component instead of the default one provided in the image.\n\nDefaults to an empty array, meaning use whatever is defined in the image."
                                     },
+                                    "cpuLimit": {
+                                      "type": "string"
+                                    },
+                                    "cpuRequest": {
+                                      "type": "string"
+                                    },
                                     "dedicatedPod": {
                                       "description": "Specify if a container should run in its own separated pod, instead of running as part of the main development environment pod.\n\nDefault value is `false`",
                                       "type": "boolean",
@@ -3058,9 +3077,7 @@
                                           "attributes": {
                                             "description": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\",",
                                             "type": "object",
-                                            "additionalProperties": {
-                                              "type": "string"
-                                            },
+                                            "additionalProperties": true,
                                             "markdownDescription": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\","
                                           },
                                           "exposure": {
@@ -3074,7 +3091,9 @@
                                             "markdownDescription": "Describes how the endpoint should be exposed on the network.\n- `public` means that the endpoint will be exposed on the public network, typically through a K8S ingress or an OpenShift route.\n- `internal` means that the endpoint will be exposed internally outside of the main workspace POD, typically by K8S services, to be consumed by other elements running on the same cloud internal network.\n- `none` means that the endpoint will not be exposed and will only be accessible inside the main workspace POD, on a local address.\n\nDefault value is `public`"
                                           },
                                           "name": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 63,
+                                            "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
                                           },
                                           "path": {
                                             "description": "Path of the endpoint URL",
@@ -3084,12 +3103,20 @@
                                           "protocol": {
                                             "description": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`",
                                             "type": "string",
+                                            "enum": [
+                                              "http",
+                                              "https",
+                                              "ws",
+                                              "wss",
+                                              "tcp",
+                                              "udp"
+                                            ],
                                             "markdownDescription": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`"
                                           },
                                           "secure": {
-                                            "description": "Describes whether the endpoint should be secured and protected by some authentication process",
+                                            "description": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`.",
                                             "type": "boolean",
-                                            "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process"
+                                            "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`."
                                           },
                                           "targetPort": {
                                             "type": "integer"
@@ -3124,6 +3151,9 @@
                                     "memoryLimit": {
                                       "type": "string"
                                     },
+                                    "memoryRequest": {
+                                      "type": "string"
+                                    },
                                     "mountSources": {
                                       "description": "Toggles whether or not the project source code should be mounted in the component.\n\nDefaults to true for all component types except plugins and components that set `dedicatedPod` to true.",
                                       "type": "boolean",
@@ -3147,6 +3177,8 @@
                                           "name": {
                                             "description": "The volume mount name is the name of an existing `Volume` component. If several containers mount the same volume name then they will reuse the same volume and will be able to access to the same files.",
                                             "type": "string",
+                                            "maxLength": 63,
+                                            "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
                                             "markdownDescription": "The volume mount name is the name of an existing `Volume` component. If several containers mount the same volume name then they will reuse the same volume and will be able to access to the same files."
                                           },
                                           "path": {
@@ -3191,9 +3223,7 @@
                                           "attributes": {
                                             "description": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\",",
                                             "type": "object",
-                                            "additionalProperties": {
-                                              "type": "string"
-                                            },
+                                            "additionalProperties": true,
                                             "markdownDescription": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\","
                                           },
                                           "exposure": {
@@ -3207,7 +3237,9 @@
                                             "markdownDescription": "Describes how the endpoint should be exposed on the network.\n- `public` means that the endpoint will be exposed on the public network, typically through a K8S ingress or an OpenShift route.\n- `internal` means that the endpoint will be exposed internally outside of the main workspace POD, typically by K8S services, to be consumed by other elements running on the same cloud internal network.\n- `none` means that the endpoint will not be exposed and will only be accessible inside the main workspace POD, on a local address.\n\nDefault value is `public`"
                                           },
                                           "name": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 63,
+                                            "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
                                           },
                                           "path": {
                                             "description": "Path of the endpoint URL",
@@ -3217,12 +3249,20 @@
                                           "protocol": {
                                             "description": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`",
                                             "type": "string",
+                                            "enum": [
+                                              "http",
+                                              "https",
+                                              "ws",
+                                              "wss",
+                                              "tcp",
+                                              "udp"
+                                            ],
                                             "markdownDescription": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`"
                                           },
                                           "secure": {
-                                            "description": "Describes whether the endpoint should be secured and protected by some authentication process",
+                                            "description": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`.",
                                             "type": "boolean",
-                                            "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process"
+                                            "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`."
                                           },
                                           "targetPort": {
                                             "type": "integer"
@@ -3248,6 +3288,8 @@
                                 "name": {
                                   "description": "Mandatory name that allows referencing the component from other elements (such as commands) or from an external devfile that may reference this component through a parent or a plugin.",
                                   "type": "string",
+                                  "maxLength": 63,
+                                  "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
                                   "markdownDescription": "Mandatory name that allows referencing the component from other elements (such as commands) or from an external devfile that may reference this component through a parent or a plugin."
                                 },
                                 "openshift": {
@@ -3277,9 +3319,7 @@
                                           "attributes": {
                                             "description": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\",",
                                             "type": "object",
-                                            "additionalProperties": {
-                                              "type": "string"
-                                            },
+                                            "additionalProperties": true,
                                             "markdownDescription": "Map of implementation-dependant string-based free-form attributes.\n\nExamples of Che-specific attributes:\n- cookiesAuthEnabled: \"true\" / \"false\",\n- type: \"terminal\" / \"ide\" / \"ide-dev\","
                                           },
                                           "exposure": {
@@ -3293,7 +3333,9 @@
                                             "markdownDescription": "Describes how the endpoint should be exposed on the network.\n- `public` means that the endpoint will be exposed on the public network, typically through a K8S ingress or an OpenShift route.\n- `internal` means that the endpoint will be exposed internally outside of the main workspace POD, typically by K8S services, to be consumed by other elements running on the same cloud internal network.\n- `none` means that the endpoint will not be exposed and will only be accessible inside the main workspace POD, on a local address.\n\nDefault value is `public`"
                                           },
                                           "name": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 63,
+                                            "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
                                           },
                                           "path": {
                                             "description": "Path of the endpoint URL",
@@ -3303,12 +3345,20 @@
                                           "protocol": {
                                             "description": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`",
                                             "type": "string",
+                                            "enum": [
+                                              "http",
+                                              "https",
+                                              "ws",
+                                              "wss",
+                                              "tcp",
+                                              "udp"
+                                            ],
                                             "markdownDescription": "Describes the application and transport protocols of the traffic that will go through this endpoint.\n- `http`: Endpoint will have `http` traffic, typically on a TCP connection. It will be automaticaly promoted to `https` when the `secure` field is set to `true`.\n- `https`: Endpoint will have `https` traffic, typically on a TCP connection.\n- `ws`: Endpoint will have `ws` traffic, typically on a TCP connection. It will be automaticaly promoted to `wss` when the `secure` field is set to `true`.\n- `wss`: Endpoint will have `wss` traffic, typically on a TCP connection.\n- `tcp`: Endpoint will have traffic on a TCP connection, without specifying an application protocol.\n- `udp`: Endpoint will have traffic on an UDP connection, without specifying an application protocol.\n\nDefault value is `http`"
                                           },
                                           "secure": {
-                                            "description": "Describes whether the endpoint should be secured and protected by some authentication process",
+                                            "description": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`.",
                                             "type": "boolean",
-                                            "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process"
+                                            "markdownDescription": "Describes whether the endpoint should be secured and protected by some authentication process. This requires a protocol of `https` or `wss`."
                                           },
                                           "targetPort": {
                                             "type": "integer"
@@ -3335,6 +3385,11 @@
                                   "description": "Allows specifying the definition of a volume shared by several other components",
                                   "type": "object",
                                   "properties": {
+                                    "ephemeral": {
+                                      "description": "Ephemeral volumes are not stored persistently across restarts. Defaults to false",
+                                      "type": "boolean",
+                                      "markdownDescription": "Ephemeral volumes are not stored persistently across restarts. Defaults to false"
+                                    },
                                     "size": {
                                       "description": "Size of the volume",
                                       "type": "string",
@@ -3384,6 +3439,11 @@
                         "description": "Allows specifying the definition of a volume shared by several other components",
                         "type": "object",
                         "properties": {
+                          "ephemeral": {
+                            "description": "Ephemeral volumes are not stored persistently across restarts. Defaults to false",
+                            "type": "boolean",
+                            "markdownDescription": "Ephemeral volumes are not stored persistently across restarts. Defaults to false"
+                          },
                           "size": {
                             "description": "Size of the volume",
                             "type": "string",
@@ -3446,6 +3506,12 @@
                       }
                     ],
                     "properties": {
+                      "attributes": {
+                        "description": "Map of implementation-dependant free-form YAML attributes.",
+                        "type": "object",
+                        "additionalProperties": true,
+                        "markdownDescription": "Map of implementation-dependant free-form YAML attributes."
+                      },
                       "clonePath": {
                         "description": "Path relative to the root of the projects to which this project should be cloned into. This is a unix-style relative path (i.e. uses forward slashes). The path is invalid if it is absolute or tries to escape the project root through the usage of '..'. If not specified, defaults to the project name.",
                         "type": "string",
@@ -3480,11 +3546,6 @@
                               "type": "string"
                             },
                             "markdownDescription": "The remotes map which should be initialized in the git project. Must have at least one remote configured"
-                          },
-                          "sparseCheckoutDir": {
-                            "description": "Part of project to populate in the working directory.",
-                            "type": "string",
-                            "markdownDescription": "Part of project to populate in the working directory."
                           }
                         },
                         "additionalProperties": false,
@@ -3519,11 +3580,6 @@
                               "type": "string"
                             },
                             "markdownDescription": "The remotes map which should be initialized in the git project. Must have at least one remote configured"
-                          },
-                          "sparseCheckoutDir": {
-                            "description": "Part of project to populate in the working directory.",
-                            "type": "string",
-                            "markdownDescription": "Part of project to populate in the working directory."
                           }
                         },
                         "additionalProperties": false,
@@ -3532,7 +3588,17 @@
                       "name": {
                         "description": "Project name",
                         "type": "string",
+                        "maxLength": 63,
+                        "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
                         "markdownDescription": "Project name"
+                      },
+                      "sparseCheckoutDirs": {
+                        "description": "Populate the project sparsely with selected directories.",
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "markdownDescription": "Populate the project sparsely with selected directories."
                       },
                       "zip": {
                         "description": "Project's Zip source",
@@ -3542,11 +3608,6 @@
                             "description": "Zip project's source location address. Should be file path of the archive, e.g. file://$FILE_PATH",
                             "type": "string",
                             "markdownDescription": "Zip project's source location address. Should be file path of the archive, e.g. file://$FILE_PATH"
-                          },
-                          "sparseCheckoutDir": {
-                            "description": "Part of project to populate in the working directory.",
-                            "type": "string",
-                            "markdownDescription": "Part of project to populate in the working directory."
                           }
                         },
                         "additionalProperties": false,
@@ -3586,10 +3647,11 @@
                       }
                     ],
                     "properties": {
-                      "clonePath": {
-                        "description": "Path relative to the root of the projects to which this project should be cloned into. This is a unix-style relative path (i.e. uses forward slashes). The path is invalid if it is absolute or tries to escape the project root through the usage of '..'. If not specified, defaults to the project name.",
-                        "type": "string",
-                        "markdownDescription": "Path relative to the root of the projects to which this project should be cloned into. This is a unix-style relative path (i.e. uses forward slashes). The path is invalid if it is absolute or tries to escape the project root through the usage of '..'. If not specified, defaults to the project name."
+                      "attributes": {
+                        "description": "Map of implementation-dependant free-form YAML attributes.",
+                        "type": "object",
+                        "additionalProperties": true,
+                        "markdownDescription": "Map of implementation-dependant free-form YAML attributes."
                       },
                       "description": {
                         "description": "Description of a starter project",
@@ -3625,11 +3687,6 @@
                               "type": "string"
                             },
                             "markdownDescription": "The remotes map which should be initialized in the git project. Must have at least one remote configured"
-                          },
-                          "sparseCheckoutDir": {
-                            "description": "Part of project to populate in the working directory.",
-                            "type": "string",
-                            "markdownDescription": "Part of project to populate in the working directory."
                           }
                         },
                         "additionalProperties": false,
@@ -3664,11 +3721,6 @@
                               "type": "string"
                             },
                             "markdownDescription": "The remotes map which should be initialized in the git project. Must have at least one remote configured"
-                          },
-                          "sparseCheckoutDir": {
-                            "description": "Part of project to populate in the working directory.",
-                            "type": "string",
-                            "markdownDescription": "Part of project to populate in the working directory."
                           }
                         },
                         "additionalProperties": false,
@@ -3677,7 +3729,14 @@
                       "name": {
                         "description": "Project name",
                         "type": "string",
+                        "maxLength": 63,
+                        "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
                         "markdownDescription": "Project name"
+                      },
+                      "subDir": {
+                        "description": "Sub-directory from a starter project to be used as root for starter project.",
+                        "type": "string",
+                        "markdownDescription": "Sub-directory from a starter project to be used as root for starter project."
                       },
                       "zip": {
                         "description": "Project's Zip source",
@@ -3687,11 +3746,6 @@
                             "description": "Zip project's source location address. Should be file path of the archive, e.g. file://$FILE_PATH",
                             "type": "string",
                             "markdownDescription": "Zip project's source location address. Should be file path of the archive, e.g. file://$FILE_PATH"
-                          },
-                          "sparseCheckoutDir": {
-                            "description": "Part of project to populate in the working directory.",
-                            "type": "string",
-                            "markdownDescription": "Part of project to populate in the working directory."
                           }
                         },
                         "additionalProperties": false,
@@ -3742,6 +3796,12 @@
                   }
                 ],
                 "properties": {
+                  "attributes": {
+                    "description": "Map of implementation-dependant free-form YAML attributes.",
+                    "type": "object",
+                    "additionalProperties": true,
+                    "markdownDescription": "Map of implementation-dependant free-form YAML attributes."
+                  },
                   "clonePath": {
                     "description": "Path relative to the root of the projects to which this project should be cloned into. This is a unix-style relative path (i.e. uses forward slashes). The path is invalid if it is absolute or tries to escape the project root through the usage of '..'. If not specified, defaults to the project name.",
                     "type": "string",
@@ -3798,11 +3858,6 @@
                           "type": "string"
                         },
                         "markdownDescription": "The remotes map which should be initialized in the git project. Must have at least one remote configured"
-                      },
-                      "sparseCheckoutDir": {
-                        "description": "Part of project to populate in the working directory.",
-                        "type": "string",
-                        "markdownDescription": "Part of project to populate in the working directory."
                       }
                     },
                     "additionalProperties": false,
@@ -3840,11 +3895,6 @@
                           "type": "string"
                         },
                         "markdownDescription": "The remotes map which should be initialized in the git project. Must have at least one remote configured"
-                      },
-                      "sparseCheckoutDir": {
-                        "description": "Part of project to populate in the working directory.",
-                        "type": "string",
-                        "markdownDescription": "Part of project to populate in the working directory."
                       }
                     },
                     "additionalProperties": false,
@@ -3853,7 +3903,17 @@
                   "name": {
                     "description": "Project name",
                     "type": "string",
+                    "maxLength": 63,
+                    "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
                     "markdownDescription": "Project name"
+                  },
+                  "sparseCheckoutDirs": {
+                    "description": "Populate the project sparsely with selected directories.",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "markdownDescription": "Populate the project sparsely with selected directories."
                   },
                   "zip": {
                     "description": "Project's Zip source",
@@ -3863,11 +3923,6 @@
                         "description": "Zip project's source location address. Should be file path of the archive, e.g. file://$FILE_PATH",
                         "type": "string",
                         "markdownDescription": "Zip project's source location address. Should be file path of the archive, e.g. file://$FILE_PATH"
-                      },
-                      "sparseCheckoutDir": {
-                        "description": "Part of project to populate in the working directory.",
-                        "type": "string",
-                        "markdownDescription": "Part of project to populate in the working directory."
                       }
                     },
                     "additionalProperties": false,
@@ -3909,10 +3964,11 @@
                   }
                 ],
                 "properties": {
-                  "clonePath": {
-                    "description": "Path relative to the root of the projects to which this project should be cloned into. This is a unix-style relative path (i.e. uses forward slashes). The path is invalid if it is absolute or tries to escape the project root through the usage of '..'. If not specified, defaults to the project name.",
-                    "type": "string",
-                    "markdownDescription": "Path relative to the root of the projects to which this project should be cloned into. This is a unix-style relative path (i.e. uses forward slashes). The path is invalid if it is absolute or tries to escape the project root through the usage of '..'. If not specified, defaults to the project name."
+                  "attributes": {
+                    "description": "Map of implementation-dependant free-form YAML attributes.",
+                    "type": "object",
+                    "additionalProperties": true,
+                    "markdownDescription": "Map of implementation-dependant free-form YAML attributes."
                   },
                   "custom": {
                     "description": "Project's Custom source",
@@ -3970,11 +4026,6 @@
                           "type": "string"
                         },
                         "markdownDescription": "The remotes map which should be initialized in the git project. Must have at least one remote configured"
-                      },
-                      "sparseCheckoutDir": {
-                        "description": "Part of project to populate in the working directory.",
-                        "type": "string",
-                        "markdownDescription": "Part of project to populate in the working directory."
                       }
                     },
                     "additionalProperties": false,
@@ -4012,11 +4063,6 @@
                           "type": "string"
                         },
                         "markdownDescription": "The remotes map which should be initialized in the git project. Must have at least one remote configured"
-                      },
-                      "sparseCheckoutDir": {
-                        "description": "Part of project to populate in the working directory.",
-                        "type": "string",
-                        "markdownDescription": "Part of project to populate in the working directory."
                       }
                     },
                     "additionalProperties": false,
@@ -4025,7 +4071,14 @@
                   "name": {
                     "description": "Project name",
                     "type": "string",
+                    "maxLength": 63,
+                    "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
                     "markdownDescription": "Project name"
+                  },
+                  "subDir": {
+                    "description": "Sub-directory from a starter project to be used as root for starter project.",
+                    "type": "string",
+                    "markdownDescription": "Sub-directory from a starter project to be used as root for starter project."
                   },
                   "zip": {
                     "description": "Project's Zip source",
@@ -4035,11 +4088,6 @@
                         "description": "Zip project's source location address. Should be file path of the archive, e.g. file://$FILE_PATH",
                         "type": "string",
                         "markdownDescription": "Zip project's source location address. Should be file path of the archive, e.g. file://$FILE_PATH"
-                      },
-                      "sparseCheckoutDir": {
-                        "description": "Part of project to populate in the working directory.",
-                        "type": "string",
-                        "markdownDescription": "Part of project to populate in the working directory."
                       }
                     },
                     "additionalProperties": false,
@@ -4112,6 +4160,11 @@
           "description": "URL at which the Worksace Editor can be joined",
           "type": "string",
           "markdownDescription": "URL at which the Worksace Editor can be joined"
+        },
+        "message": {
+          "description": "Message is a short user-readable message giving additional information about an object's state",
+          "type": "string",
+          "markdownDescription": "Message is a short user-readable message giving additional information about an object's state"
         },
         "phase": {
           "type": "string"

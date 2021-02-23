@@ -1,8 +1,12 @@
 package v1alpha2
 
+import (
+	attributes "github.com/devfile/api/v2/pkg/attributes"
+)
+
 // EndpointProtocol defines the application and transport protocols of the traffic that will go through this endpoint.
 // Only one of the following protocols may be specified: http, ws, tcp, udp.
-// +kubebuilder:validation:Enum=http;ws;tcp;udp
+// +kubebuilder:validation:Enum=http;https;ws;wss;tcp;udp
 type EndpointProtocol string
 
 const (
@@ -43,6 +47,8 @@ const (
 )
 
 type Endpoint struct {
+	// +kubebuilder:validation:Pattern=^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+	// +kubebuilder:validation:MaxLength=63
 	Name string `json:"name"`
 
 	TargetPort int `json:"targetPort"`
@@ -83,10 +89,10 @@ type Endpoint struct {
 	// Default value is `http`
 	// +optional
 	// +kubebuilder:default=http
-	Protocol string `json:"protocol,omitempty"`
+	Protocol EndpointProtocol `json:"protocol,omitempty"`
 
 	// Describes whether the endpoint should be secured and protected by some
-	// authentication process
+	// authentication process. This requires a protocol of `https` or `wss`.
 	// +optional
 	Secure bool `json:"secure,omitempty"`
 
@@ -102,5 +108,5 @@ type Endpoint struct {
 	//
 	// - type: "terminal" / "ide" / "ide-dev",
 	// +optional
-	Attributes map[string]string `json:"attributes,omitempty"`
+	Attributes attributes.Attributes `json:"attributes,omitempty"`
 }

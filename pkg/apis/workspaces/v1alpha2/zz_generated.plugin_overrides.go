@@ -1,5 +1,9 @@
 package v1alpha2
 
+import (
+	attributes "github.com/devfile/api/v2/pkg/attributes"
+)
+
 // +devfile:jsonschema:generate
 type PluginOverrides struct {
 	OverridesBase `json:",inline"`
@@ -27,7 +31,13 @@ type ComponentPluginOverride struct {
 	// Mandatory name that allows referencing the component
 	// from other elements (such as commands) or from an external
 	// devfile that may reference this component through a parent or a plugin.
-	Name                         string `json:"name"`
+	// +kubebuilder:validation:Pattern=^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+	// +kubebuilder:validation:MaxLength=63
+	Name string `json:"name"`
+
+	// Map of implementation-dependant free-form YAML attributes.
+	// +optional
+	Attributes                   attributes.Attributes `json:"attributes,omitempty"`
 	ComponentUnionPluginOverride `json:",inline"`
 }
 
@@ -36,7 +46,13 @@ type CommandPluginOverride struct {
 	// Mandatory identifier that allows referencing
 	// this command in composite commands, from
 	// a parent, or in events.
-	Id                         string `json:"id"`
+	// +kubebuilder:validation:Pattern=^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+	// +kubebuilder:validation:MaxLength=63
+	Id string `json:"id"`
+
+	// Map of implementation-dependant free-form YAML attributes.
+	// +optional
+	Attributes                 attributes.Attributes `json:"attributes,omitempty"`
 	CommandUnionPluginOverride `json:",inline"`
 }
 
@@ -123,7 +139,6 @@ type ComponentTypePluginOverride string
 type ContainerComponentPluginOverride struct {
 	BaseComponentPluginOverride `json:",inline"`
 	ContainerPluginOverride     `json:",inline"`
-	MemoryLimit                 string                   `json:"memoryLimit,omitempty"`
 	Endpoints                   []EndpointPluginOverride `json:"endpoints,omitempty" patchStrategy:"merge" patchMergeKey:"name"`
 }
 
@@ -160,8 +175,9 @@ type ExecCommandPluginOverride struct {
 	//  - `$PROJECT_SOURCE`: A path to a project source ($PROJECTS_ROOT/<project-name>). If there are multiple projects, this will point to the directory of the first one.
 	CommandLine string `json:"commandLine,omitempty"`
 
+	//  +optional
 	// Describes component to which given action relates
-	// +optional
+	//
 	Component string `json:"component,omitempty"`
 
 	// Working directory where the command should be executed
@@ -192,8 +208,9 @@ type ExecCommandPluginOverride struct {
 type ApplyCommandPluginOverride struct {
 	LabeledCommandPluginOverride `json:",inline"`
 
+	//  +optional
 	// Describes component that will be applied
-	// +optional
+	//
 	Component string `json:"component,omitempty"`
 }
 
@@ -241,6 +258,15 @@ type ContainerPluginOverride struct {
 	// +optional
 	MemoryLimit string `json:"memoryLimit,omitempty"`
 
+	// +optional
+	MemoryRequest string `json:"memoryRequest,omitempty"`
+
+	// +optional
+	CpuLimit string `json:"cpuLimit,omitempty"`
+
+	// +optional
+	CpuRequest string `json:"cpuRequest,omitempty"`
+
 	// The command to run in the dockerimage component instead of the default one provided in the image.
 	//
 	// Defaults to an empty array, meaning use whatever is defined in the image.
@@ -275,6 +301,9 @@ type ContainerPluginOverride struct {
 }
 
 type EndpointPluginOverride struct {
+
+	// +kubebuilder:validation:Pattern=^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+	// +kubebuilder:validation:MaxLength=63
 	Name string `json:"name"`
 
 	//  +optional
@@ -314,10 +343,10 @@ type EndpointPluginOverride struct {
 	//
 	// Default value is `http`
 	// +optional
-	Protocol string `json:"protocol,omitempty"`
+	Protocol EndpointProtocolPluginOverride `json:"protocol,omitempty"`
 
 	// Describes whether the endpoint should be secured and protected by some
-	// authentication process
+	// authentication process. This requires a protocol of `https` or `wss`.
 	// +optional
 	Secure bool `json:"secure,omitempty"`
 
@@ -333,7 +362,7 @@ type EndpointPluginOverride struct {
 	//
 	// - type: "terminal" / "ide" / "ide-dev",
 	// +optional
-	Attributes map[string]string `json:"attributes,omitempty"`
+	Attributes attributes.Attributes `json:"attributes,omitempty"`
 }
 
 type K8sLikeComponentPluginOverride struct {
@@ -348,6 +377,11 @@ type VolumePluginOverride struct {
 	// +optional
 	// Size of the volume
 	Size string `json:"size,omitempty"`
+
+	// +optional
+	// Ephemeral volumes are not stored persistently across restarts. Defaults
+	// to false
+	Ephemeral bool `json:"ephemeral,omitempty"`
 }
 
 type LabeledCommandPluginOverride struct {
@@ -370,9 +404,6 @@ type BaseCommandPluginOverride struct {
 	// +optional
 	// Defines the group this command is part of
 	Group *CommandGroupPluginOverride `json:"group,omitempty"`
-
-	// Optional map of free-form additional command attributes
-	Attributes map[string]string `json:"attributes,omitempty"`
 }
 
 // +union
@@ -401,6 +432,8 @@ type VolumeMountPluginOverride struct {
 	// The volume mount name is the name of an existing `Volume` component.
 	// If several containers mount the same volume name
 	// then they will reuse the same volume and will be able to access to the same files.
+	// +kubebuilder:validation:Pattern=^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+	// +kubebuilder:validation:MaxLength=63
 	Name string `json:"name"`
 
 	// The path in the component container where the volume should be mounted.
@@ -413,6 +446,11 @@ type VolumeMountPluginOverride struct {
 // Only one of the following exposures may be specified: public, internal, none.
 // +kubebuilder:validation:Enum=public;internal;none
 type EndpointExposurePluginOverride string
+
+// EndpointProtocol defines the application and transport protocols of the traffic that will go through this endpoint.
+// Only one of the following protocols may be specified: http, ws, tcp, udp.
+// +kubebuilder:validation:Enum=http;https;ws;wss;tcp;udp
+type EndpointProtocolPluginOverride string
 
 // +union
 type K8sLikeComponentLocationPluginOverride struct {

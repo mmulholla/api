@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	workspaces "github.com/devfile/api/pkg/apis/workspaces/v1alpha2"
+	workspaces "github.com/devfile/api/v2/pkg/apis/workspaces/v1alpha2"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/util/json"
 	yamlMachinery "k8s.io/apimachinery/pkg/util/yaml"
@@ -18,13 +18,13 @@ func TestBasicToplevelOverriding(t *testing.T) {
 	original := workspaces.DevWorkspaceTemplateSpecContent{
 		Commands: []workspaces.Command{
 			{
-				Id: "commandWithTypeChanged",
+				Id: "command-with-type-changed",
 				CommandUnion: workspaces.CommandUnion{
 					Exec: &workspaces.ExecCommand{},
 				},
 			},
 			{
-				Id: "commandToReplace",
+				Id: "command-to-replace",
 				CommandUnion: workspaces.CommandUnion{
 					Exec: &workspaces.ExecCommand{
 						Env: []workspaces.EnvVar{
@@ -41,7 +41,7 @@ func TestBasicToplevelOverriding(t *testing.T) {
 				},
 			},
 			{
-				Id: "commandNotChanged",
+				Id: "command-not-changed",
 				CommandUnion: workspaces.CommandUnion{
 					Exec: &workspaces.ExecCommand{
 						LabeledCommand: workspaces.LabeledCommand{
@@ -56,7 +56,7 @@ func TestBasicToplevelOverriding(t *testing.T) {
 	patch := workspaces.ParentOverrides{
 		Commands: []workspaces.CommandParentOverride{
 			{
-				Id: "commandWithTypeChanged",
+				Id: "command-with-type-changed",
 				CommandUnionParentOverride: workspaces.CommandUnionParentOverride{
 					Apply: &workspaces.ApplyCommandParentOverride{
 						Component: "mycomponent",
@@ -64,7 +64,7 @@ func TestBasicToplevelOverriding(t *testing.T) {
 				},
 			},
 			{
-				Id: "commandToReplace",
+				Id: "command-to-replace",
 				CommandUnionParentOverride: workspaces.CommandUnionParentOverride{
 					Exec: &workspaces.ExecCommandParentOverride{
 						Env: []workspaces.EnvVarParentOverride{
@@ -86,7 +86,7 @@ func TestBasicToplevelOverriding(t *testing.T) {
 	expected := &workspaces.DevWorkspaceTemplateSpecContent{
 		Commands: []workspaces.Command{
 			{
-				Id: "commandWithTypeChanged",
+				Id: "command-with-type-changed",
 				CommandUnion: workspaces.CommandUnion{
 					Apply: &workspaces.ApplyCommand{
 						Component: "mycomponent",
@@ -94,7 +94,7 @@ func TestBasicToplevelOverriding(t *testing.T) {
 				},
 			},
 			{
-				Id: "commandToReplace",
+				Id: "command-to-replace",
 				CommandUnion: workspaces.CommandUnion{
 					Exec: &workspaces.ExecCommand{
 						Env: []workspaces.EnvVar{
@@ -115,7 +115,7 @@ func TestBasicToplevelOverriding(t *testing.T) {
 				},
 			},
 			{
-				Id: "commandNotChanged",
+				Id: "command-not-changed",
 				CommandUnion: workspaces.CommandUnion{
 					Exec: &workspaces.ExecCommand{
 						LabeledCommand: workspaces.LabeledCommand{
@@ -304,11 +304,80 @@ func TestMerging(t *testing.T) {
 	})
 }
 
+func TestPluginOverrides(t *testing.T) {
+	originalFile := "test-fixtures/patches/override-just-plugin/original.yaml"
+	patchFile := "test-fixtures/patches/override-just-plugin/patch.yaml"
+	resultFile := "test-fixtures/patches/override-just-plugin/result.yaml"
+
+	originalDWT := workspaces.DevWorkspaceTemplateSpecContent{}
+	patch := workspaces.PluginOverrides{}
+	expectedDWT := workspaces.DevWorkspaceTemplateSpecContent{}
+
+	readFileToStruct(t, originalFile, &originalDWT)
+	readFileToStruct(t, patchFile, &patch)
+	readFileToStruct(t, resultFile, &expectedDWT)
+
+	gotDWT, err := OverrideDevWorkspaceTemplateSpec(&originalDWT, patch)
+	if assert.NoError(t, err) {
+		assert.Equal(t, &expectedDWT, gotDWT)
+	}
+}
+
+func TestMergingOnlyPlugins(t *testing.T) {
+	baseFile := "test-fixtures/merges/no-parent/main.yaml"
+	pluginFile := "test-fixtures/merges/no-parent/plugin.yaml"
+	resultFile := "test-fixtures/merges/no-parent/result.yaml"
+
+	baseDWT := workspaces.DevWorkspaceTemplateSpecContent{}
+	pluginDWT := workspaces.DevWorkspaceTemplateSpecContent{}
+	expectedDWT := workspaces.DevWorkspaceTemplateSpecContent{}
+
+	readFileToStruct(t, baseFile, &baseDWT)
+	readFileToStruct(t, pluginFile, &pluginDWT)
+	readFileToStruct(t, resultFile, &expectedDWT)
+
+	gotDWT, err := MergeDevWorkspaceTemplateSpec(&baseDWT, nil, &pluginDWT)
+	if assert.NoError(t, err) {
+		assert.Equal(t, &expectedDWT, gotDWT)
+	}
+}
+
+func TestMergingOnlyParent(t *testing.T) {
+	// Reuse only plugin case since it's compatible
+	baseFile := "test-fixtures/merges/no-parent/main.yaml"
+	parentFile := "test-fixtures/merges/no-parent/plugin.yaml"
+	resultFile := "test-fixtures/merges/no-parent/result.yaml"
+
+	baseDWT := workspaces.DevWorkspaceTemplateSpecContent{}
+	parentDWT := workspaces.DevWorkspaceTemplateSpecContent{}
+	expectedDWT := workspaces.DevWorkspaceTemplateSpecContent{}
+
+	readFileToStruct(t, baseFile, &baseDWT)
+	readFileToStruct(t, parentFile, &parentDWT)
+	readFileToStruct(t, resultFile, &expectedDWT)
+
+	gotDWT, err := MergeDevWorkspaceTemplateSpec(&baseDWT, &parentDWT)
+	if assert.NoError(t, err) {
+		assert.Equal(t, &expectedDWT, gotDWT)
+	}
+}
+
+func readFileToStruct(t *testing.T, path string, into interface{}) {
+	bytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		t.Fatalf("Failed to read test file from %s: %s", path, err.Error())
+	}
+	err = yaml.Unmarshal(bytes, into)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal file into struct: %s", err.Error())
+	}
+}
+
 // Since order of error message lines is not deterministic, it's necessary to compare
 // in a weaker way than asserting string equality.
 func compareErrorMessages(t *testing.T, expected, actual string, failReason string) {
 	if expected == "" {
-		t.Error("Received error but did not expect one")
+		t.Error("Received error but did not expect one: " + actual)
 		return
 	}
 	expectedLines := strings.Split(strings.TrimSpace(expected), "\n")

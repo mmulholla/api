@@ -1,10 +1,11 @@
 schemaVersion: 2.0.0
 metadata:
-  publisher: redhat
-  name: vsx-template
-  type: template
-  parameters:
-    VSX_LIST 
+  attributes:
+    publisher: redhat
+    name: vsx-template
+    type: template
+    parameters:
+      VSX_LIST 
 components:
   - name: vsx-installer
     container:
@@ -18,9 +19,9 @@ components:
   - name: vsx
     volume: {}
 commands:
- - id: copyVsx
+ - id: copyvsx
    apply:
      component: vsx-installer
 events:
   preStart:
-    - copyVsx
+    - copyvsx

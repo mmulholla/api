@@ -4,7 +4,6 @@ package v1alpha2
 type ContainerComponent struct {
 	BaseComponent `json:",inline"`
 	Container     `json:",inline"`
-	MemoryLimit   string     `json:"memoryLimit,omitempty"`
 	Endpoints     []Endpoint `json:"endpoints,omitempty" patchStrategy:"merge" patchMergeKey:"name"`
 }
 
@@ -29,6 +28,15 @@ type Container struct {
 
 	// +optional
 	MemoryLimit string `json:"memoryLimit,omitempty"`
+
+	// +optional
+	MemoryRequest string `json:"memoryRequest,omitempty"`
+
+	// +optional
+	CpuLimit string `json:"cpuLimit,omitempty"`
+
+	// +optional
+	CpuRequest string `json:"cpuRequest,omitempty"`
 
 	// The command to run in the dockerimage component instead of the default one provided in the image.
 	//
@@ -74,6 +82,8 @@ type VolumeMount struct {
 	// The volume mount name is the name of an existing `Volume` component.
 	// If several containers mount the same volume name
 	// then they will reuse the same volume and will be able to access to the same files.
+	// +kubebuilder:validation:Pattern=^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+	// +kubebuilder:validation:MaxLength=63
 	Name string `json:"name"`
 
 	// The path in the component container where the volume should be mounted.

@@ -1,6 +1,7 @@
 schemaVersion: "2.0.0"
 metadata:
   name: "devfile example"
+  version: "1.0.0"
 projects:
   - name: "my-project"
     git:
@@ -11,13 +12,17 @@ projects:
         remote: origin
 components:
   - name: editor
+    attributes:
+      kjkh: "128M"
+      kjhkjh:
+        "": ""
     plugin:
       id: eclipse/che-theia/latest
-  - name: "ownPlugin"
+  - name: "ownplugin"
     plugin:
       id: acme/newPlugin/latest
       registryUrl: "https://acme.com/registry/"
-  - name: "myPlugin"
+  - name: "myplugin"
     plugin:
       uri: "https://github.com/johndoe/che-plugins/blob/master/cool-plugin/0.0.1/meta.yaml"
   - name: "mycontainer"

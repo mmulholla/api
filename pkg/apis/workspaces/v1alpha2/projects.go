@@ -1,23 +1,50 @@
 package v1alpha2
 
-import runtime "k8s.io/apimachinery/pkg/runtime"
+import (
+	attributes "github.com/devfile/api/v2/pkg/attributes"
+	runtime "k8s.io/apimachinery/pkg/runtime"
+)
 
 type Project struct {
 	// Project name
+	// +kubebuilder:validation:Pattern=^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+	// +kubebuilder:validation:MaxLength=63
 	Name string `json:"name"`
+
+	// Map of implementation-dependant free-form YAML attributes.
+	// +optional
+	Attributes attributes.Attributes `json:"attributes,omitempty"`
 
 	// Path relative to the root of the projects to which this project should be cloned into. This is a unix-style relative path (i.e. uses forward slashes). The path is invalid if it is absolute or tries to escape the project root through the usage of '..'. If not specified, defaults to the project name.
 	// +optional
 	ClonePath string `json:"clonePath,omitempty"`
 
+	// Populate the project sparsely with selected directories.
+	// +optional
+	SparseCheckoutDirs []string `json:"sparseCheckoutDirs,omitempty"`
+
 	ProjectSource `json:",inline"`
 }
+
 type StarterProject struct {
-	Project `json:",inline"`
+	// Project name
+	// +kubebuilder:validation:Pattern=^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+	// +kubebuilder:validation:MaxLength=63
+	Name string `json:"name"`
+
+	// Map of implementation-dependant free-form YAML attributes.
+	// +optional
+	Attributes attributes.Attributes `json:"attributes,omitempty"`
 
 	// Description of a starter project
 	// +optional
 	Description string `json:"description,omitempty"`
+
+	// Sub-directory from a starter project to be used as root for starter project.
+	// +optional
+	SubDir string `json:"subDir,omitempty"`
+
+	ProjectSource `json:",inline"`
 }
 
 // ProjectSourceType describes the type of Project sources.
@@ -61,9 +88,6 @@ type ProjectSource struct {
 }
 
 type CommonProjectSource struct {
-	// Part of project to populate in the working directory.
-	// +optional
-	SparseCheckoutDir string `json:"sparseCheckoutDir,omitempty"`
 }
 
 type CustomProjectSource struct {
