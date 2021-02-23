@@ -1,4 +1,4 @@
-module github.com/devfile/api/test
+module github.com/mmulholla/api/test
 
 go 1.13
 
