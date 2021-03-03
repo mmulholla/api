@@ -86,6 +86,13 @@ func Test_StarterProjects(t *testing.T) {
 	apiUtils.RunTest(testContent, t)
 }
 
+func Test_Events(t *testing.T) {
+	testContent := commonUtils.TestContent{}
+	testContent.AddEvents = true
+	testContent.FileName = commonUtils.GetDevFileName()
+	apiUtils.RunTest(testContent, t)
+}
+
 func Test_Everything(t *testing.T) {
 	testContent := commonUtils.TestContent{}
 	testContent.CommandTypes = []schema.CommandType{
