@@ -70,6 +70,7 @@ type TestContent struct {
 	ProjectTypes        []schema.ProjectSourceType
 	StarterProjectTypes []schema.ProjectSourceType
 	AddEvents           bool
+	AddMetadata         bool
 	FileName            string
 	EditContent         bool
 }
@@ -178,6 +179,7 @@ func LogInfoMessage(message string) string {
 
 // TestDevfile is a structure used to track a test devfile and its contents
 type TestDevfile struct {
+	SchemaHeader  header.DevfileHeader
 	SchemaDevFile schema.Devfile
 	FileName      string
 	GroupDefaults map[schema.CommandGroupKind]bool
@@ -236,11 +238,11 @@ func GetRandomDecision(success int, failure int) bool {
 // GetRandomNumber randomly returns an integer between 1 and the number specified.
 func GetRandomNumber(min int, max int) int {
 	if min == max {
-		return 1
+		return min
 	} else if min > max {
 		return rand.Intn(max) + 1
 	}
-	return rand.Intn(max-min) + min + 1
+	return rand.Intn(max-min+1) + min
 }
 
 // GetDevfile returns a structure used to represent a specific devfile in a test
@@ -251,6 +253,7 @@ func GetDevfile(fileName string, follower DevfileFollower, validator DevfileVali
 	testDevfile.SchemaDevFile = schema.Devfile{}
 	testDevfile.FileName = fileName
 	testDevfile.SchemaDevFile.SchemaVersion = "2.0.0"
+	testDevfile.SchemaDevFile.Metadata = header.DevfileMetadata{}
 	testDevfile.GroupDefaults = make(map[schema.CommandGroupKind]bool)
 	for _, kind := range GroupKinds {
 		testDevfile.GroupDefaults[kind] = false
@@ -299,6 +302,10 @@ func (testDevfile *TestDevfile) RunTest(testContent TestContent, t *testing.T) {
 
 	if testContent.AddEvents {
 		testDevfile.AddEvents()
+	}
+
+	if testContent.AddMetadata {
+		testDevfile.AddMetadata()
 	}
 
 	err := testDevfile.Validator.WriteAndValidate(testDevfile)

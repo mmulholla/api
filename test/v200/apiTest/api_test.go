@@ -91,6 +91,13 @@ func Test_Events(t *testing.T) {
 	apiUtils.RunTest(testContent, t)
 }
 
+func Test_Metadata(t *testing.T) {
+	testContent := commonUtils.TestContent{}
+	testContent.AddMetadata = true
+	testContent.FileName = commonUtils.GetDevFileName()
+	apiUtils.RunTest(testContent, t)
+}
+
 func Test_Everything(t *testing.T) {
 	testContent := commonUtils.TestContent{}
 	testContent.CommandTypes = []schema.CommandType{
@@ -107,6 +114,7 @@ func Test_Everything(t *testing.T) {
 		schema.GitProjectSourceType,
 		schema.ZipProjectSourceType}
 	testContent.AddEvents = true
+	testContent.AddMetadata = true
 	testContent.FileName = commonUtils.GetDevFileName()
 	apiUtils.RunTest(testContent, t)
 }

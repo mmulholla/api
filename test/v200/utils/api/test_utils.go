@@ -16,7 +16,7 @@ import (
 
 const (
 	// numDevfiles : the number of devfiles to create for each test
-	numDevfiles = 5
+	numDevfiles = 10
 
 	schemaFileName = "../../../schemas/latest/ide-targeted/devfile.json"
 )
